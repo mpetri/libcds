@@ -81,4 +81,12 @@ namespace cds_static
         ret->symbol = loadValue<uint>(fp);
         return ret;
     }
+
+    void wt_node_leaf::intersect(std::vector< pair<size_t,size_t> >& ranges,
+            size_t thres,std::vector<uint>* intersection) const {
+        if(ranges.size() >= thres ) {
+            intersection->push_back(symbol);
+        }
+    }
 };
+

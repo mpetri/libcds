@@ -260,4 +260,52 @@ namespace cds_static
         return ret;
     }
 
+    void wt_node_internal::intersect(std::vector< pair<size_t,size_t> >& ranges,
+            size_t thres,std::vector<uint>* intersection) const {
+        if(ranges.size() < thres) {
+            return;
+        } else {
+            /* map each range to the corresponding range at level + 1 */
+            size_t left,right,newleft,newright;
+
+            std::vector< pair<size_t,size_t> > ranges_zero;
+            std::vector< pair<size_t,size_t> > ranges_one;
+
+            for(size_t i=0;i<ranges.size();i++) {
+                pair<size_t,size_t> r = ranges[i];
+                left = r.first;
+                right = r.second;
+
+                /* number of 1s before T[l..r] */
+                size_t rank_before_left = bitmap->rank1(left-1);
+                /* number of 1s before T[r] */
+                size_t rank_before_right = bitmap->rank1(right);
+                /* number of 1s in T[l..r] */
+                size_t num_ones = rank_before_right - rank_before_left;
+                /* number of 1s in T[l..r] */
+                size_t num_zeros = (right-left+1) - num_ones;
+
+                if(num_ones) {
+                    /* number of 1s before T[l..r] within the current node */
+                    newleft = rank_before_left;
+                    /* number of 1s in T[l..r] */
+                    newright = newleft+num_ones-1;
+
+                    ranges_one.push_back( pair<size_t,size_t>(newleft,newright) );
+                }
+
+                if(num_zeros) {
+                    /* number of zeros before T[l..r] within the current node */
+                    newleft = left - rank_before_left;
+                    /* number of zeros in T[l..r] */
+                    newright = newleft+num_zeros-1;
+
+                    ranges_zero.push_back( pair<size_t,size_t>(newleft,newright));
+                }
+            }
+            left_child->intersect(ranges_zero,thres,intersection);
+            right_child->intersect(ranges_one,thres,intersection);
+        }
+    }
 };
+

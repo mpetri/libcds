@@ -34,6 +34,54 @@ using namespace std;
 
 namespace cds_static
 {
+    class intrange_t : public std::vector< pair<size_t,size_t> > {
+        public:
+            intrange_t(size_t s,size_t e,uint lvl,uint sym,std::vector< pair<size_t,size_t> > ranges) :
+                    std::vector< pair<size_t,size_t> >(ranges) {
+                this->sym = sym;
+                start = s; end = e;
+                level = lvl;
+                freq = 0;
+                for(size_t i=0;i<ranges.size();i++) {
+                    pair<size_t,size_t> p = ranges[i];
+                    freq += (p.second - p.first + 1);
+                }
+            };
+
+            intrange_t(size_t s,size_t e,uint lvl,uint sym) :
+                    std::vector< pair<size_t,size_t> >() {
+                this->sym = sym;
+                start = s; end = e;
+                level = lvl;
+                freq = 0;
+            };
+
+            void addRange( size_t sp, size_t ep ) {
+                freq += (ep-sp+1);
+                push_back( pair<size_t,size_t>(sp,ep) );
+            };
+
+            bool operator<(const intrange_t& r) const
+            {
+                return ( (freq) < (r.freq));
+            };
+
+            bool contains_empty() {
+                if( size() == 0 ) return true;
+                for(size_t i=0;i<size();i++) {
+                    pair<size_t,size_t> interval = (*this)[i];
+                    if( interval.first > interval.second ) return true;
+                }
+                return false;
+            };
+        public:
+            uint sym;
+            size_t start;
+            size_t end;
+            uint level;
+            size_t freq;
+    };
+
 
     class WaveletTreeNoptrs : public Sequence
     {
@@ -73,6 +121,8 @@ namespace cds_static
 
             virtual void save(ofstream & fp) const;
             static WaveletTreeNoptrs * load(ifstream & fp);
+
+            std::vector<uint32_t>* intersect(std::vector< pair<size_t,size_t> >& ranges,size_t thres=0);
 
         protected:
             WaveletTreeNoptrs();

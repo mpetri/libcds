@@ -50,6 +50,8 @@ namespace cds_static
             virtual size_t getSize() const = 0;
             virtual void save(ofstream & fp) const = 0;
             static wt_node * load(ifstream & fp);
+            virtual void intersect(std::vector< pair<size_t,size_t> >& ranges,
+                    size_t thres,std::vector<uint>* intersection) const = 0;
     };
 
 };

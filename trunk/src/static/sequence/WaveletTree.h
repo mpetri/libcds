@@ -86,6 +86,8 @@ namespace cds_static
             virtual void save(ofstream & fp) const;
             static WaveletTree * load(ifstream & fp);
 
+            std::vector<uint32_t>* intersect(std::vector< pair<size_t,size_t> >& ranges,size_t threshold = 0);
+
         protected:
 
             WaveletTree();

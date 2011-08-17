@@ -152,4 +152,24 @@ namespace cds_static
         return ret;
     }
 
+    std::vector<uint32_t>* WaveletTree::intersect(std::vector< pair<size_t,size_t> >& ranges,size_t thres) {
+        std::vector<uint>* intersection = new std::vector<uint>();
+        std::vector<uint>* iunmaped = new std::vector<uint>();
+
+        if(thres ==0) thres = ranges.size();
+
+        root->intersect(ranges,thres,iunmaped);
+
+        /* unmap all symbols */
+        if(iunmaped->size()>0) {
+            for(size_t i=0;i<iunmaped->size();i++) {
+                intersection->push_back( am->unmap((*iunmaped)[i]) );
+            }
+        }
+
+        delete iunmaped;
+        return intersection;
+    }
+
 };
+

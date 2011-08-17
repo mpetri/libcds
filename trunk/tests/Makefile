@@ -2,12 +2,12 @@
 CPP=g++
 
 #CPPFLAGS=-g3 -Wall -O0 -I../includes/ 
-#CPPFLAGS=-O3 -Wall -DNDEBUG -I../includes/
+CPPFLAGS=-O3 -Wall -DNDEBUG -I../includes/
 INCS=-I../includes/
 LIB=../lib/libcds.a
 
-OBJECTS= testArray.o testBitSequence.o testSequence.o testHuffman.o testTextIndex.o testLCP.o testNPR.o testSuffixTree.o timeSequence.o toArray.o toArray2.o
-BIN= testArray testBitSequence testSequence testHuffman testTextIndex testLCP testNPR testSuffixTree timeSequence toArray toArray2
+OBJECTS= testArray.o testBitSequence.o testSequence.o testHuffman.o testTextIndex.o testLCP.o testNPR.o testSuffixTree.o timeSequence.o toArray.o toArray2.o testIntersection.o
+BIN= testArray testBitSequence testSequence testHuffman testTextIndex testLCP testNPR testSuffixTree timeSequence toArray toArray2 testIntersection
 
 %.o: %.cpp
 	@echo " [C++] Compiling $<"
@@ -28,6 +28,10 @@ testSequence:
 testBitSequence:
 	@echo " [LNK] Building testBitSequence"
 	@$(CPP) $(CPPFLAGS) -o testBitSequence testBitSequence.o $(LIB)
+
+testIntersection:
+	@echo " [LNK] Building testIntersection"
+	@$(CPP) $(CPPFLAGS) -o testIntersection testIntersection.o $(LIB)
 
 testArray:
 	@echo " [LNK] Building testArray"

@@ -21,6 +21,8 @@
 
 #include <WaveletTreeNoptrs.h>
 
+#include <queue>
+
 namespace cds_static
 {
     WaveletTreeNoptrs::WaveletTreeNoptrs(const Array & a, BitSequenceBuilder * bmb, Mapper * am) : Sequence(0) {
@@ -490,6 +492,89 @@ namespace cds_static
     size_t WaveletTreeNoptrs::count(uint symbol) const
     {
         return occ->select1(am->map(symbol))-occ->select1(am->map(symbol)-1)+1;
+    }
+
+    std::vector<uint>* WaveletTreeNoptrs::intersect(std::vector< pair<size_t,size_t> >& ranges,size_t thres)
+    {
+        std::vector<uint>* intersection = new std::vector<uint>();
+
+        if(thres == 0) {
+            thres = ranges.size();
+        }
+        size_t start,end,before,left,right,newleft,newright;
+        uint csym,clevel;
+        BitSequence* bs;
+
+        priority_queue<intrange_t> heap;
+        heap.push( intrange_t(0,n-1,0,0, ranges) );
+
+        while( ! heap.empty() ) {
+            intrange_t cur_ranges = heap.top();
+            heap.pop();
+
+            /* check if we have non-empty valid ranges */
+            if( cur_ranges.contains_empty() ) continue;
+
+            csym = cur_ranges.sym;
+            clevel = cur_ranges.level;
+            if( clevel == height ) {
+                 if( thres <= cur_ranges.size() ) {
+                     /* we found a symbol */
+                     intersection->push_back( am->unmap(csym) );
+                 }
+            } else {
+                /* map each range to the corresponding range at level + 1 */
+                start = cur_ranges.start;
+                end = cur_ranges.end;
+                bs = bitstring[clevel];
+
+                if(start == 0) before = 0;
+                else before = bs->rank1(start-1);
+
+                /* new interval bounds */
+                size_t newintbound = end - (bs->rank1(end)-before);
+
+                intrange_t ranges_zero(start,newintbound,clevel+1,csym);
+                intrange_t ranges_one(newintbound+1,end,clevel+1, set(csym,clevel) );
+
+                for(size_t i=0;i<cur_ranges.size();i++) {
+                    pair<size_t,size_t> r = cur_ranges[i];
+                    left = r.first;
+                    right = r.second;
+
+                    /* number of 1s before T[l..r] */
+                    size_t rank_before_left = bs->rank1(start+left-1);
+                    /* number of 1s before T[r] */
+                    size_t rank_before_right = bs->rank1(start+right);
+                    /* number of 1s in T[l..r] */
+                    size_t num_ones = rank_before_right - rank_before_left;
+                    /* number of 1s in T[l..r] */
+                    size_t num_zeros = (right-left+1) - num_ones;
+
+                    if(num_ones) {
+                        /* number of 1s before T[l..r] within the current node */
+                        newleft = rank_before_left - before;
+                        /* number of 1s in T[l..r] */
+                        newright = rank_before_right - before - 1;
+
+                        ranges_one.addRange(newleft,newright);
+                    }
+
+                    if(num_zeros) {
+                        /* number of zeros before T[l..r] within the current 
+                         * node */
+                        newleft = left - (rank_before_left - before);
+                        /* number of zeros in T[l..r] + left bound */
+                        newright = right - (rank_before_right - before);
+
+                        ranges_zero.addRange(newleft,newright);
+                    }
+                }
+                heap.push(ranges_zero);
+                heap.push(ranges_one);
+            }
+        }
+        return intersection;
     }
 
 };
